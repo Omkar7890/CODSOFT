@@ -1,0 +1,64 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+public class CurrencyConverter {
+    private static final String API_KEY = "YOUR_API_KEY"; // Replace with your API key
+    private static final String API_URL = "https://api.currencystack.io/latest";
+    private static final String API_PARAMS = "?access_key=" + API_KEY;
+
+    public static void main(String[] args) {
+        try {
+       
+            JSONObject exchangeRates = getExchangeRates();
+
+            System.out.println("Available currencies:");
+            for (Object currency : exchangeRates.keySet()) {
+                System.out.println(currency);
+            }
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Enter base currency: ");
+            String baseCurrency = reader.readLine().toUpperCase();
+            System.out.print("Enter target currency: ");
+            String targetCurrency = reader.readLine().toUpperCase();
+
+            System.out.print("Enter amount to convert: ");
+            double amount = Double.parseDouble(reader.readLine());
+
+            double exchangeRate = Double.parseDouble(exchangeRates.get(targetCurrency).toString());
+            double convertedAmount = amount * exchangeRate;
+
+            System.out.println(amount + " " + baseCurrency + " is equivalent to " + convertedAmount + " " + targetCurrency);
+        } catch (IOException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static JSONObject getExchangeRates() throws IOException, ParseException {
+        URL url = new URL(API_URL + API_PARAMS);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuilder response = new StringBuilder();
+
+        while ((inputLine = reader.readLine()) != null) {
+            response.append(inputLine);
+        }
+        reader.close();
+
+        JSONParser parser = new JSONParser();
+        JSONObject jsonResponse = (JSONObject) parser.parse(response.toString());
+        JSONObject rates = (JSONObject) jsonResponse.get("rates");
+
+        return rates;
+    }
+}
+
