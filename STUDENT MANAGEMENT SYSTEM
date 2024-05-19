@@ -1,0 +1,151 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Student implements Serializable {
+    private String name;
+    private int rollNumber;
+    private String grade;
+
+    public Student(String name, int rollNumber, String grade) {
+        this.name = name;
+        this.rollNumber = rollNumber;
+        this.grade = grade;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getRollNumber() {
+        return rollNumber;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    @Override
+    public String toString() {
+        return "Name: " + name + ", Roll Number: " + rollNumber + ", Grade: " + grade;
+    }
+}
+public class StudentManagementSystem {
+    private ArrayList<Student> students;
+    private static final String FILENAME = "students.dat";
+
+    public StudentManagementSystem() {
+        students = new ArrayList<>();
+        loadStudentsFromFile();
+    }
+
+    private void loadStudentsFromFile() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILENAME))) {
+            students = (ArrayList<Student>) ois.readObject();
+        } catch (FileNotFoundException e) {
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveStudentsToFile() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILENAME))) {
+            oos.writeObject(students);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addStudent(Student student) {
+        students.add(student);
+        saveStudentsToFile();
+    }
+
+    public void removeStudent(int rollNumber) {
+        for (int i = 0; i < students.size(); i++) {
+            if (students.get(i).getRollNumber() == rollNumber) {
+                students.remove(i);
+                saveStudentsToFile();
+                return;
+            }
+        }
+        System.out.println("Student with roll number " + rollNumber + " not found.");
+    }
+
+    public void searchStudent(int rollNumber) {
+        for (Student student : students) {
+            if (student.getRollNumber() == rollNumber) {
+                System.out.println("Student found:");
+                System.out.println(student);
+                return;
+            }
+        }
+        System.out.println("Student with roll number " + rollNumber + " not found.");
+    }
+
+    public void displayAllStudents() {
+        if (students.isEmpty()) {
+            System.out.println("No students enrolled.");
+        } else {
+            System.out.println("All Students:");
+            for (Student student : students) {
+                System.out.println(student);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        StudentManagementSystem system = new StudentManagementSystem();
+        Scanner scanner = new Scanner(System.in);
+        boolean exit = false;
+
+        while (!exit) {
+            System.out.println("\nStudent Management System");
+            System.out.println("1. Add Student");
+            System.out.println("2. Remove Student");
+            System.out.println("3. Search Student");
+            System.out.println("4. Display All Students");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter student name: ");
+                    String name = scanner.nextLine();
+                    System.out.print("Enter roll number: ");
+                    int rollNumber = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter grade: ");
+                    String grade = scanner.nextLine();
+                    system.addStudent(new Student(name, rollNumber, grade));
+                    break;
+                case 2:
+                    System.out.print("Enter roll number of student to remove: ");
+                    int rollToRemove = scanner.nextInt();
+                    system.removeStudent(rollToRemove);
+                    break;
+                case 3:
+                    System.out.print("Enter roll number of student to search: ");
+                    int rollToSearch = scanner.nextInt();
+                    system.searchStudent(rollToSearch);
+                    break;
+                case 4:
+                    system.displayAllStudents();
+                    break;
+                case 5:
+                    exit = true;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please enter a number between 1 and 5.");
+            }
+        }
+
+        System.out.println("Exiting Student Management System.");
+        scanner.close();
+    }
+}
+
